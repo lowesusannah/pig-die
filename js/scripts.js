@@ -1,7 +1,7 @@
 function Game() {
   this.players = [];
+  this.round = 1;
   this.currentPlayer = 0;
-  this.round = 0;
 }
 
 Game.prototype.addPlayer = function(id) {
@@ -9,13 +9,19 @@ Game.prototype.addPlayer = function(id) {
   this.players.push(player)
 };
 
-Game.prototype.initialize = function() {
-
-}
-
 Game.prototype.roll = function() {
   return parseInt(Math.random() * 6) + 1;
 }
+
+Game.prototype.endTurn = function(player) {
+  player.hardScore += player.softScore;
+  player.softScore = 0;
+  this.currentPlayer = id + 1;
+  if (!this.players[nextPlayer]) {
+    this.currentPlayer = 0;
+  }
+  return this.players[this.currentPlayer];
+};
 
 function Player(id) {
   this.id = id;
@@ -25,6 +31,14 @@ function Player(id) {
   this.avatar = 0;
 }
 
+Player.prototype.applyRoll = function(roll) {
+  if roll === 1 {
+    this.softScore = 0
+    return
+  } else {
+    this.softScore += roll
+  }
+}
 // JQUERY //
 var initGameDisplay = function(game) {
   game.players.forEach(function(player) {
