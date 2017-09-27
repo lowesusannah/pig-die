@@ -16,12 +16,23 @@ Game.prototype.roll = function() {
 Game.prototype.endTurn = function(player) {
   player.hardScore += player.softScore;
   player.softScore = 0;
-  this.currentPlayer = id + 1;
-  if (!this.players[nextPlayer]) {
-    this.currentPlayer = 0;
+  var nextPlayerID = this.currentPlayer +=1
+  if (!this.players[nextPlayerID]) {
+    nextPlayerID = 0;
   }
-  return this.players[this.currentPlayer];
+  this.currentPlayer = nextPlayerID;
+  return this.players[nextPlayerID];
 };
+
+Game.prototype.applyRoll = function(player, roll) {
+  if (roll === 1) {
+    player.softScore = 0
+    return this.endTurn(player);
+  } else {
+    player.softScore += roll
+    return player;
+  }
+}
 
 function Player(id) {
   this.id = id;
@@ -31,14 +42,6 @@ function Player(id) {
   this.avatar = 0;
 }
 
-Player.prototype.applyRoll = function(roll) {
-  if roll === 1 {
-    this.softScore = 0
-    return
-  } else {
-    this.softScore += roll
-  }
-}
 // JQUERY //
 var initGameDisplay = function(game) {
   game.players.forEach(function(player) {
@@ -50,14 +53,11 @@ var initGameDisplay = function(game) {
     $("#player-" + id).append(`
       <p>Score: <span id="player-` + id + `-score"></span>
     `)
-    updateScores(player);
+    turnDisplayUpdate(player);
+    console.log(game);
   });
 }
 
-var turnDisplayUpdate = function(player) {
-  $("#current-player").text(player.name);
-  $("#roll-total").text(player.softScore);
-}
 
 
 var addPlayer = function(game) {
@@ -87,13 +87,8 @@ var addPlayer = function(game) {
   game.addPlayer(id);
 }
 
-var updateScores = function(player) {
-  $("#player-" + player.id + "-score").text(player.hardScore)
-}
-
 var removePlayer = function(game) {
   var player = game.players.pop();
-  console.log(player);
   var id = player.id;
   $("#player-"+id).remove();
   if (id === 2) {
@@ -101,6 +96,16 @@ var removePlayer = function(game) {
   }
   $("#preround-add").show();
 }
+
+var updateScores = function(player) {
+  $("#player-" + player.id + "-score").text(player.hardScore)
+}
+
+var turnDisplayUpdate = function(player) {
+  $("#current-player").text(player.name);
+  $("#roll-total").text(player.softScore);
+}
+
 
 $(document).ready(function() {
   var game = new Game();
@@ -119,8 +124,16 @@ $(document).ready(function() {
   $("#die-roll").click(function(){
     var roll = game.roll();
     $("#roll-result").text("You rolled a " + roll);
-    game.players[0].softScore = game.players[0].softScore + roll;
-    turnDisplayUpdate(game.players[0]);
+    var currentPlayer = game.players[game.currentPlayer];
+    var nextPlayer = game.applyRoll(currentPlayer, roll);
+    updateScores(currentPlayer);
+    turnDisplayUpdate(nextPlayer);
+  });
+  $("#die-hold").click(function(){
+    var currentPlayer = game.players[game.currentPlayer];
+    var nextPlayer = game.endTurn(currentPlayer);
+    updateScores(currentPlayer);
+    turnDisplayUpdate(nextPlayer);
   });
 
 });
