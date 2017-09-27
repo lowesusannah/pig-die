@@ -1,3 +1,12 @@
+function Player(id) {
+  this.id = id;
+  this.name = "";
+  this.hardScore = 0;
+  this.softScore = 0;
+  this.avatar = 0;
+  this.rolls = 0;
+}
+
 function Game() {
   this.players = [];
   this.round = 1;
@@ -25,6 +34,7 @@ Game.prototype.endTurn = function(player) {
 };
 
 Game.prototype.applyRoll = function(player, roll) {
+  player.rolls += 1
   if (roll === 1) {
     player.softScore = 0
     return this.endTurn(player);
@@ -34,31 +44,8 @@ Game.prototype.applyRoll = function(player, roll) {
   }
 }
 
-function Player(id) {
-  this.id = id;
-  this.name = "";
-  this.hardScore = 0;
-  this.softScore = 0;
-  this.avatar = 0;
-}
 
 // JQUERY //
-var initGameDisplay = function(game) {
-  game.players.forEach(function(player) {
-    var id = player.id;
-    player.name = $("#player-" + id + "-name").val();
-    $("#player-" + id + "-form").hide();
-    $("#preround-control").hide();
-    $("#player-" + id + "-title").text(player.name);
-    $("#player-" + id).append(`
-      <p>Score: <span id="player-` + id + `-score"></span>
-    `)
-    turnDisplayUpdate(player);
-    console.log(game);
-  });
-}
-
-
 
 var addPlayer = function(game) {
   var id = game.players.length;
@@ -73,6 +60,7 @@ var addPlayer = function(game) {
             </div>
           </form>
           <h2 id="` + playerid + `-title" class="playername"></h2>
+          <p class = "score">Score: <span id="` + playerid + `-score"></span></p>
         </div>
       </div>
     </div>
@@ -101,11 +89,20 @@ var updateScores = function(player) {
   $("#player-" + player.id + "-score").text(player.hardScore)
 }
 
-var turnDisplayUpdate = function(player) {
+var updateTurnDisplay = function(player) {
   $("#current-player").text(player.name);
   $("#roll-total").text(player.softScore);
 }
 
+var checkGameState = function(game) {
+  game.players.forEach(function(player) {
+    if (player.hardScore >= 100) {
+      $("#post-game").show();
+      $("#dice-board").hide();
+      $("#winner").text(player.name + " won the game! Yahoo!!");
+    }
+  });
+}
 
 $(document).ready(function() {
   var game = new Game();
@@ -119,7 +116,20 @@ $(document).ready(function() {
     removePlayer(game);
   });
   $("#preround-start").click(function() {
-    initGameDisplay(game);
+    $("#dice-board").show();
+    $("#post-game").hide();
+    game.players.forEach(function(player) {
+      var id = player.id;
+      player.name = $("#player-" + id + "-name").val();
+      $("#player-" + id + "-form").hide();
+      $("#preround-control").hide();
+      $("#player-" + id + "-title").text(player.name);
+      $(".score").show();
+      updateScores(player);
+      console.log(game);
+    });
+    game.currentPlayer = 0;
+    updateTurnDisplay(game.players[0]);
   });
   $("#die-roll").click(function(){
     var roll = game.roll();
@@ -127,13 +137,23 @@ $(document).ready(function() {
     var currentPlayer = game.players[game.currentPlayer];
     var nextPlayer = game.applyRoll(currentPlayer, roll);
     updateScores(currentPlayer);
-    turnDisplayUpdate(nextPlayer);
+    updateTurnDisplay(nextPlayer);
+    checkGameState(game);
   });
   $("#die-hold").click(function(){
     var currentPlayer = game.players[game.currentPlayer];
     var nextPlayer = game.endTurn(currentPlayer);
     updateScores(currentPlayer);
-    turnDisplayUpdate(nextPlayer);
+    updateTurnDisplay(nextPlayer);
+    checkGameState(game);
   });
-
+  $("#reset-game").click(function() {
+    $("#preround-control").show();
+    game.players.forEach(function(player) {
+      player.softScore = 0;
+      player.hardScore = 0;
+      player.rolls = 0;
+      updateScores(player);
+    });
+  });
 });

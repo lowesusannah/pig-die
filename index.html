@@ -22,13 +22,19 @@
             <button id="preround-start" class="btn btn-warning">Start Round</button>
           </div>
         </div>
-        <div class="col-md-6" id="dice-board">
-          <h2 class="well text-center"><span id="current-player">Player 1</span>'s turn</h2>
-          <div class="text-center">
-            <button class="btn btn-danger" id="die-roll">Roll!</button>
-            <button class="btn btn-warning" id="die-hold">Hold</button>
-            <h1>Turn Total: <span id="roll-total"></span></h1>
-            <h2 id="roll-result"></h2>
+        <div class="col-md-6">
+          <div id="dice-board">
+            <h2 class="well text-center"><span id="current-player">Player 1</span>'s turn</h2>
+            <div class="text-center">
+              <button class="btn btn-danger" id="die-roll">Roll!</button>
+              <button class="btn btn-warning" id="die-hold">Hold</button>
+              <h1>Turn Total: <span id="roll-total"></span></h1>
+              <h2 id="roll-result"></h2>
+            </div>
+          </div>
+          <div id="post-game" class="text-center">
+            <h1 id="winner"></h1>
+            <button id="reset-game" class="btn btn-warning">Play Again</button>
           </div>
         </div>
       </div>

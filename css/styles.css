@@ -5,3 +5,11 @@
 #dice-board {
   display: none;
 }
+
+#post-game {
+  display: none;
+}
+
+.score {
+  display: none;
+}
