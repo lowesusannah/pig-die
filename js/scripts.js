@@ -11,6 +11,7 @@ function Game() {
   this.players = [];
   this.round = 1;
   this.currentPlayer = 0;
+  this.inProgress = false;
 }
 
 Game.prototype.addPlayer = function(id) {
@@ -57,6 +58,7 @@ var addPlayer = function(game) {
           <form id="` + playerid + `-form" class="form-name">
             <div class="form-group">
               <input class="form-control" type="text" placeholder="Enter player name" id="` + playerid + `-name">
+              <input type="checkbox" name="computer-player" value="computer-control" id="`+ playerid + `-is-computer"> Computer Player Mode<br>
             </div>
           </form>
           <h2 id="` + playerid + `-title" class="playername"></h2>
@@ -94,14 +96,56 @@ var updateTurnDisplay = function(player) {
   $("#roll-total").text(player.softScore);
 }
 
+Player.prototype.canPlay = function(game) {
+  return game.inProgress && game.currentPlayer === this.id;
+}
+
 var checkGameState = function(game) {
+  console.log("Current Player:" + game.currentPlayer);
   game.players.forEach(function(player) {
     if (player.hardScore >= 100) {
       $("#post-game").show();
       $("#dice-board").hide();
       $("#winner").text(player.name + " won the game! Yahoo!!");
+      game.inProgress = false;
+    }
+    if (!player.isComputer) {
+      $(".dice-play").show();
+    }
+    if (player.canPlay(game) && player.isComputer) {
+      var interval = setInterval(function() {
+        if ( !(player.isComputer && player.canPlay(game) && player.softScore < 10)) {
+          clearInterval(interval);
+          return;
+        }
+        $(".dice-play").hide();
+        var rolled = rollDie(game);
+        console.log("conputer rolled a " + rolled);
+        if (player.softScore >= 10) {
+          holdDie(game);
+        }
+      }, 2000);
     }
   });
+}
+
+var rollDie = function(game) {
+  var roll = game.roll();
+  $("#roll-result").text("You rolled a " + roll);
+  var currentPlayer = game.players[game.currentPlayer];
+  var nextPlayer = game.applyRoll(currentPlayer, roll);
+  updateScores(currentPlayer);
+  updateTurnDisplay(nextPlayer);
+  checkGameState(game);
+  return roll;
+}
+
+var holdDie = function(game) {
+  var currentPlayer = game.players[game.currentPlayer];
+  var nextPlayer = game.endTurn(currentPlayer);
+  updateScores(currentPlayer);
+  updateTurnDisplay(nextPlayer);
+  checkGameState(game);
 }
 
 $(document).ready(function() {
@@ -118,6 +162,7 @@ $(document).ready(function() {
   $("#preround-start").click(function() {
     $("#dice-board").show();
     $("#post-game").hide();
+    game.inProgress = true;
     game.players.forEach(function(player) {
       var id = player.id;
       player.name = $("#player-" + id + "-name").val();
@@ -126,28 +171,20 @@ $(document).ready(function() {
       $("#player-" + id + "-title").text(player.name);
       $(".score").show();
       updateScores(player);
-      console.log(game);
+      player.isComputer = $("#player-" + id + "-is-computer:checked").val();
     });
     game.currentPlayer = 0;
     updateTurnDisplay(game.players[0]);
+    checkGameState(game);
   });
   $("#die-roll").click(function(){
-    var roll = game.roll();
-    $("#roll-result").text("You rolled a " + roll);
-    var currentPlayer = game.players[game.currentPlayer];
-    var nextPlayer = game.applyRoll(currentPlayer, roll);
-    updateScores(currentPlayer);
-    updateTurnDisplay(nextPlayer);
-    checkGameState(game);
+    rollDie(game);
   });
   $("#die-hold").click(function(){
-    var currentPlayer = game.players[game.currentPlayer];
-    var nextPlayer = game.endTurn(currentPlayer);
-    updateScores(currentPlayer);
-    updateTurnDisplay(nextPlayer);
-    checkGameState(game);
+    holdDie(game);
   });
   $("#reset-game").click(function() {
+    $("#post-game").hide();
     $("#preround-control").show();
     game.players.forEach(function(player) {
       player.softScore = 0;
