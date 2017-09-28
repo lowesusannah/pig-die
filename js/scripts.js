@@ -109,7 +109,9 @@ var checkGameState = function(game) {
       $("#winner").text(player.name + " won the game! Yahoo!!");
       game.inProgress = false;
     }
-    if (!player.isComputer) {
+    if (player.isComputer) {
+      $(".dice-play").hide();
+    } else {
       $(".dice-play").show();
     }
     if (player.canPlay(game) && player.isComputer) {
@@ -118,13 +120,12 @@ var checkGameState = function(game) {
           clearInterval(interval);
           return;
         }
-        $(".dice-play").hide();
         var rolled = rollDie(game);
         console.log("conputer rolled a " + rolled);
         if (player.softScore >= 10) {
           holdDie(game);
         }
-      }, 2000);
+      }, Math.random() * 1000 + 1200);
     }
   });
 }
