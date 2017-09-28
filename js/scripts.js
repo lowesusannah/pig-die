@@ -132,9 +132,9 @@ var checkGameState = function(game) {
 
 var rollDie = function(game) {
   var roll = game.roll();
-  $("#roll-result").text("You rolled a " + roll);
   var currentPlayer = game.players[game.currentPlayer];
   var nextPlayer = game.applyRoll(currentPlayer, roll);
+  $("#roll-log").prepend(`<div class="anime-roll">` + currentPlayer.name + "rolled a " + roll + "</div>");
   updateScores(currentPlayer);
   updateTurnDisplay(nextPlayer);
   checkGameState(game);
