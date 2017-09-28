@@ -12,6 +12,7 @@ function Game() {
   this.round = 1;
   this.currentPlayer = 0;
   this.inProgress = false;
+  this.rolllog = [];
 }
 
 Game.prototype.addPlayer = function(id) {
@@ -54,6 +55,9 @@ var addPlayer = function(game) {
   $("#player-list").append(`
     <div id="` + playerid + `" class="well">
       <div class="row">
+      <div class="col-md-3">
+        <img class="avatar-display" id="avatar-` + id + `" src="img/default.png">
+      </div>
         <div class="col-md-9">
           <form id="` + playerid + `-form" class="form-name">
             <div class="form-group">
@@ -75,7 +79,13 @@ var addPlayer = function(game) {
     $("#preround-add").hide();
   }
   game.addPlayer(id);
-}
+
+  $("#avatar-" + id).click(function() {
+    console.log("AHHHA");
+    game.editAvatar = id
+    $("#avatar-screen").show();
+  });
+};
 
 var removePlayer = function(game) {
   var player = game.players.pop();
@@ -101,7 +111,6 @@ Player.prototype.canPlay = function(game) {
 }
 
 var checkGameState = function(game) {
-  console.log("Current Player:" + game.currentPlayer);
   game.players.forEach(function(player) {
     if (player.hardScore >= 100) {
       $("#post-game").show();
@@ -121,20 +130,53 @@ var checkGameState = function(game) {
           return;
         }
         var rolled = rollDie(game);
-        console.log("conputer rolled a " + rolled);
-        if (player.softScore >= 10) {
+        if (player.softScore >= 7) {
           holdDie(game);
         }
-      }, Math.random() * 1000 + 1200);
+      }, 2000);
     }
   });
+}
+
+var logRoll = function(game, text) {
+  game.rolllog.forEach(function(log) {
+    if (!log.revered) {
+      log.revered = true
+      log.reverse();
+      log.play();
+    }
+  });
+
+  var logid = game.rolllog.length
+
+  $("#roll-log").prepend(`<div id = "logline-` + logid + `" class="anime-roll">` + text + "</div>");
+
+  game.rolllog.push(anime({
+    targets: "#logline-" + logid,
+    scale: 2,
+    duration: 500,
+    easing: "easeInOutBack"
+  }));
+
+  if (logid >= 10) {
+    $(".anime-roll").last().remove()
+  }
 }
 
 var rollDie = function(game) {
   var roll = game.roll();
   var currentPlayer = game.players[game.currentPlayer];
   var nextPlayer = game.applyRoll(currentPlayer, roll);
-  $("#roll-log").prepend(`<div class="anime-roll">` + currentPlayer.name + "rolled a " + roll + "</div>");
+
+  var text = currentPlayer.name + " rolled a " + roll
+
+  if (roll === 1) {
+    text += " and Busted!"
+  } else {
+    text += "!"
+  }
+  logRoll(game, text);
+
   updateScores(currentPlayer);
   updateTurnDisplay(nextPlayer);
   checkGameState(game);
@@ -143,6 +185,7 @@ var rollDie = function(game) {
 
 var holdDie = function(game) {
   var currentPlayer = game.players[game.currentPlayer];
+  logRoll(game, currentPlayer.name + " Holds " + currentPlayer.softScore + ".");
   var nextPlayer = game.endTurn(currentPlayer);
   updateScores(currentPlayer);
   updateTurnDisplay(nextPlayer);
@@ -178,15 +221,24 @@ $(document).ready(function() {
     updateTurnDisplay(game.players[0]);
     checkGameState(game);
   });
+  $(".avatar-select").click(function() {
+    var newImage = $(this).attr("src");
+    $("#avatar-" + game.editAvatar).attr("src", newImage);
+  });
+
   $("#die-roll").click(function(){
     rollDie(game);
   });
   $("#die-hold").click(function(){
     holdDie(game);
   });
+
   $("#reset-game").click(function() {
     $("#post-game").hide();
     $("#preround-control").show();
+    $(".anime-roll").remove();
+    game.rollLog = [];
+    game.rollLog.length = 0;
     game.players.forEach(function(player) {
       player.softScore = 0;
       player.hardScore = 0;

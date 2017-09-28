@@ -1,3 +1,11 @@
+body {
+  background-color: #FED0D0;
+}
+.jumbotron {
+  background-color:#D46C6C;
+  color: white;
+}
+
 #preround-remove {
   display: none;
 }
@@ -8,8 +16,44 @@
 
 #post-game {
   display: none;
+  opacity: .5;
 }
 
 .score {
   display: none;
+}
+
+#dice-container {
+  padding: 5px;
+  height: 200px;
+  width: auto;
+}
+
+#dice {
+  width: 50px;
+  height: 50px;
+  background: #1B94D9;
+  margin: 0 auto;
+  opacity: 0;
+}
+
+.anime-roll {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.player-panel {
+  opacity: 1;
+}
+
+#avatar-screen {
+  display: none;
+}
+
+img {
+  height: auto;
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+  max-width: 200px;
 }
